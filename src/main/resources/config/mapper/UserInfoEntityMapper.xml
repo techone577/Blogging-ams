@@ -7,19 +7,20 @@
     <result column="nick_name" property="nickName" />
     <result column="password" property="password" />
     <result column="salt" property="salt" />
+    <result column="permission" property="permission"/>
     <result column="add_time" property="addTime" />
     <result column="update_time" property="updateTime" />
     <result column="del_flag" property="delFlag" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, member_id, nick_name, password, salt, add_time, update_time, del_flag
+    id, member_id, nick_name, password, salt, permission, add_time, update_time, del_flag
   </sql>
   <insert id="insert" parameterType="com.blogging.ams.model.entity.UserInfoEntity" >
     insert into user_info (id, member_id, nick_name, 
-      password, salt, add_time, 
+      password, salt, permission, add_time,
       update_time, del_flag)
     values (#{id}, #{memberId}, #{nickName}, 
-      #{password}, #{salt}, #{addTime}, 
+      #{password}, #{salt}, #{permission}, #{addTime},
       #{updateTime}, #{delFlag})
   </insert>
   <insert id="insertSelective" parameterType="com.blogging.ams.model.entity.UserInfoEntity" >
@@ -39,6 +40,9 @@
       </if>
       <if test="salt != null" >
         salt,
+      </if>
+      <if test="permission != null">
+        permission,
       </if>
       <if test="addTime != null" >
         add_time,
@@ -65,6 +69,9 @@
       </if>
       <if test="salt != null" >
         #{salt},
+      </if>
+      <if test="permission != null" >
+        #{permission},
       </if>
       <if test="addTime != null" >
         #{addTime},

@@ -13,6 +13,8 @@ public class UserInfoEntity {
 
     private String salt;
 
+    private String permission;
+
     private Date addTime;
 
     private Date updateTime;
@@ -57,6 +59,14 @@ public class UserInfoEntity {
 
     public void setSalt(String salt) {
         this.salt = salt == null ? null : salt.trim();
+    }
+
+    public String getPermission() {
+        return permission;
+    }
+
+    public void setPermission(String permission) {
+        this.permission = permission;
     }
 
     public Date getAddTime() {

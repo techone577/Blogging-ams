@@ -8,6 +8,7 @@ import com.blogging.ams.support.annotation.Json;
 import com.blogging.ams.support.annotation.ServiceInfo;
 import com.blogging.ams.support.exception.UnifiedException;
 import com.blogging.ams.support.utils.JsonUtil;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ public class AuthController {
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     @ServiceInfo(name = "Blogging.AMS.AuthController.register", description = "注册")
+    @RequiresRoles("root")
     public Response register(@Json AuthReqDTO dto) {
         LOG.info("注册用户入参:{}", JsonUtil.toString(dto));
         Response response = authBusiness.register(dto);
@@ -48,7 +50,7 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
-    @ServiceInfo(name = "Bloggging.AMS.AuthController.logout", description = "登出")
+    @ServiceInfo(name = "Blogging.AMS.AuthController.logout", description = "登出")
     public Response logout() {
         LOG.info("用户登出入参!");
         Response response = authBusiness.logout();

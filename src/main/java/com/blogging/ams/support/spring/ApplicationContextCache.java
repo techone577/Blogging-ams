@@ -86,8 +86,14 @@ public class ApplicationContextCache implements ApplicationContextAware {
         for (Object ob : c) {
             /**
              * 避免object为aop生成的动态代理对象获取不到methods
+             *
+             * TODO 为啥用shiro注解的类被代理了两次
              */
-            getServiceInfoAnnotation(AopUtils.getTargetClass(ob), list);
+            try {
+                getServiceInfoAnnotation(AopUtils.getTargetClass(AopTargetUtils.getTarget(ob)), list);
+            }catch(Exception e){
+
+            }
         }
     }
 

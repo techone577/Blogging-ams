@@ -42,10 +42,11 @@ public class ShiroConfiguration {
         shiroFilterFactoryBean.setSecurityManager(securityManager);
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<String, String>();
         //配置退出 过滤器,其中的具体的退出代码Shiro已经替我们实现了，登出后跳转配置的loginUrl
-        filterChainDefinitionMap.put("/api/auth/logout", "logout");
+//        filterChainDefinitionMap.put("/api/auth/logout", "logout");
         filterChainDefinitionMap.put("/api/auth/logout", "anon");
-        //authc. 配置拦截的请求
-        filterChainDefinitionMap.put("/api/auth/**", "authc");
+        filterChainDefinitionMap.put("/api/auth/login", "anon");
+//        //authc. 配置拦截的请求
+//        filterChainDefinitionMap.put("/api/auth/**", "authc");
         //配置shiro默认登录界面地址，前后端分离中登录界面跳转应由前端路由控制，后台仅返回json数据
         shiroFilterFactoryBean.setLoginUrl("/api/auth/unauth");
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
@@ -102,7 +103,6 @@ public class ShiroConfiguration {
         redisManager.setPort(port);
         redisManager.setExpire(1800);// 配置缓存过期时间
         redisManager.setTimeout(timeout);
-        redisManager.setPassword(password);
         return redisManager;
     }
     /**

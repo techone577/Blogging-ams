@@ -4,6 +4,7 @@ import com.blogging.ams.model.entity.UserInfoEntity;
 import com.blogging.ams.model.enums.ErrorCodeEnum;
 import com.blogging.ams.service.UserService;
 import com.blogging.ams.support.exception.UnifiedException;
+import com.blogging.ams.support.utils.JsonUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
@@ -27,16 +28,19 @@ public class AMSShiroRealm extends AuthorizingRealm {
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals){
         String username = (String) super.getAvailablePrincipal(principals);
         SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
-        Set<String> roles = new HashSet<String>(){
+        UserInfoEntity entity = userInfoService.queryByName(username);
+        if(null == entity)
+            throw new UnifiedException(ErrorCodeEnum.USER_NOT_EXIST_ERROR);
+        Set<String> roles = new HashSet<String>() {
             {
-                add("root");
+                add(entity.getPermission());
             }
         };
         authorizationInfo.setRoles(roles);
         roles.forEach(role -> {
             Set<String> permissions = new HashSet<String>(){
                 {
-                    add("root");
+                    add(entity.getPermission());
                 }
             };
             authorizationInfo.addStringPermissions(permissions);
@@ -68,7 +72,7 @@ public class AMSShiroRealm extends AuthorizingRealm {
                 getName()  //realm name
         );
         Session session = SecurityUtils.getSubject().getSession();
-        session.setAttribute("USER_SESSION", userInfo);
+        session.setAttribute("USER_SESSION", JsonUtil.toString(userInfo));
         return authenticationInfo;
     }
 

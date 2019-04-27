@@ -15,12 +15,15 @@ import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.crypto.hash.SimpleHash;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -36,12 +39,16 @@ public class AuthBusiness {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private SessionDAO sessionDAO;
+
     public Response loginAuth(AuthReqDTO reqDTO) {
         if (null == reqDTO || StringUtils.isBlank(reqDTO.getName())
                 || StringUtils.isBlank(reqDTO.getPassword()))
             throw new UnifiedException(ErrorCodeEnum.PARAM_ILLEGAL_ERROR);
         UsernamePasswordToken token = new UsernamePasswordToken(reqDTO.getName(), reqDTO.getPassword());
         Subject subject = SecurityUtils.getSubject();
+        mutualLogin(reqDTO.getName());
         try {
             subject.login(token);
 //          put("token", subject.getSession().getId());
@@ -57,6 +64,23 @@ public class AuthBusiness {
         }
         return ResponseBuilder.build(true, "登录成功");
 
+    }
+
+    /**
+     * 互斥登录
+     * @param name
+     */
+    public void mutualLogin(String name){
+        Collection<Session> sessions = sessionDAO.getActiveSessions();
+        if(null != sessions) {
+            sessions.stream().forEach(i->{
+                Subject s = new Subject.Builder().session(i).buildSubject();
+                if(name.equals(s.getPrincipal()) && s.isAuthenticated()){
+                    s.logout();
+                    sessionDAO.delete(i);
+                }
+            });
+        }
     }
 
     /**
@@ -95,7 +119,9 @@ public class AuthBusiness {
     public Response logout() {
         Subject currentUser = SecurityUtils.getSubject();
         LOG.info("用户登出:{}", (String) currentUser.getPrincipal());
-        currentUser.logout();
+        if (currentUser.isAuthenticated()) {
+            currentUser.logout();
+        }
         return ResponseBuilder.build(true, "登出成功");
     }
 
