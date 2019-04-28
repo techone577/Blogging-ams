@@ -51,9 +51,9 @@ public class AuthController {
 
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     @ServiceInfo(name = "Blogging.AMS.AuthController.logout", description = "登出")
-    public Response logout() {
+    public Response logout(@Json AuthReqDTO reqDTO) {
         LOG.info("用户登出入参!");
-        Response response = authBusiness.logout();
+        Response response = authBusiness.logout(reqDTO);
         LOG.info("用户登出出参:{}", JsonUtil.toString(response));
         return response;
     }

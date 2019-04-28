@@ -27,9 +27,13 @@ public enum ErrorCodeEnum {
      */
     USER_NOT_EXIST_ERROR(20000, "用户不存在"),
     WRONG_PASSWORD_ERROR(20001, "密码错误"),
-    USER_LOCKED_ERROR(20002,"用户冻结"),
-    USER_ALREADY_EXIST_ERROR(20003,"用户已存在"),
-    NEED_RELOGIN(20004,"需要重新登录");
+    USER_LOCKED_ERROR(20002, "用户冻结"),
+    USER_ALREADY_EXIST_ERROR(20003, "用户已存在"),
+    NEED_RELOGIN(20004, "需要重新登录"),
+    ALREADY_LOGOUT_ERROR(20005, "您已经退出登录"),
+    ALREADY_LOGIN_ERROR(20006, "已有用户登录"),
+    MULTI_USER_EXISTERROR(20007, "多个相同用户同时在线"),
+    JSESSIONID_NOT_MATCH_ERROR(20008, "JSESSIONID不匹配");
 
 
     private int code;

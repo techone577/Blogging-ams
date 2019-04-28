@@ -22,9 +22,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author techoneduan
@@ -47,11 +53,14 @@ public class AuthBusiness {
                 || StringUtils.isBlank(reqDTO.getPassword()))
             throw new UnifiedException(ErrorCodeEnum.PARAM_ILLEGAL_ERROR);
         UsernamePasswordToken token = new UsernamePasswordToken(reqDTO.getName(), reqDTO.getPassword());
+
         Subject subject = SecurityUtils.getSubject();
-        mutualLogin(reqDTO.getName());
+        //构造token返回头
+        addJsessionIdForCookieEnable(subject.getSession().getId().toString());
+        //互斥登陆
+        mutualLogin(reqDTO.getName(), subject.getSession());
         try {
             subject.login(token);
-//          put("token", subject.getSession().getId());
 
         } catch (IncorrectCredentialsException e) {
             throw new UnifiedException(ErrorCodeEnum.WRONG_PASSWORD_ERROR);
@@ -68,19 +77,37 @@ public class AuthBusiness {
 
     /**
      * 互斥登录
+     *
      * @param name
      */
-    public void mutualLogin(String name){
+    public void mutualLogin(String name, Session session) {
         Collection<Session> sessions = sessionDAO.getActiveSessions();
-        if(null != sessions) {
-            sessions.stream().forEach(i->{
+        String sessionId = session.getId().toString();
+        if (null != sessions) {
+            sessions.stream().forEach(i -> {
                 Subject s = new Subject.Builder().session(i).buildSubject();
-                if(name.equals(s.getPrincipal()) && s.isAuthenticated()){
+                //同一个浏览器 || session下的用户 不管是否是同一个账户，保持之前的登录状态
+                if (s.isAuthenticated() && i.getId().toString().equals(sessionId)) {
+                    //直接赋予登录状态 前端路由控制跳转 未登录不需删除当前创建的session
+                    throw new UnifiedException(ErrorCodeEnum.ALREADY_LOGIN_ERROR);
+                }
+                //不是同一个session 同一个用户 踢出另一个
+                if (name.equals(s.getPrincipal()) && s.isAuthenticated() && !i.getId().toString().equals(sessionId)) {
+                    //使当前session保持登录状态
                     s.logout();
-                    sessionDAO.delete(i);
+                    sessionDAO.delete(session);
                 }
             });
         }
+    }
+
+    /**
+     * 添加返回头避免cookie被禁用
+     */
+    private void addJsessionIdForCookieEnable(String jsessionId) {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletResponse response = attributes.getResponse();
+        response.addHeader("ams-JSESSIONID", jsessionId);
     }
 
     /**
@@ -116,13 +143,55 @@ public class AuthBusiness {
      *
      * @return
      */
-    public Response logout() {
+    public Response logout(AuthReqDTO reqDTO) {
         Subject currentUser = SecurityUtils.getSubject();
-        LOG.info("用户登出:{}", (String) currentUser.getPrincipal());
+        String userName = (String) currentUser.getPrincipal();
+        logoutFrontCheck(userName, currentUser.getSession());
+        LOG.info("用户登出:{}", userName);
         if (currentUser.isAuthenticated()) {
             currentUser.logout();
         }
         return ResponseBuilder.build(true, "登出成功");
+    }
+
+    /**
+     * 登出前置检查
+     *
+     * @param name
+     * @param session
+     */
+    public void logoutFrontCheck(String name, Session session) {
+        if (StringUtils.isBlank(name))
+            throw new UnifiedException(ErrorCodeEnum.ALREADY_LOGOUT_ERROR);
+        Collection<Session> sessions = sessionDAO.getActiveSessions();
+        List<Session> sessionList = sessions.stream().filter(i -> {
+            Subject s = new Subject.Builder().session(i).buildSubject();
+            if( null == s){
+                sessionDAO.delete(i);
+                return false;
+            }
+            if (StringUtils.isBlank((String) s.getPrincipal())) {
+                s.logout();
+                sessionDAO.delete(i);
+                return false;
+            } else {
+                return ((String) s.getPrincipal()).equals(name);
+            }
+        }).collect(Collectors.toList());
+        if (sessionList.size() > 1) {
+            LOG.info("存在多个相同登录账户，全部退出");
+            sessionList.forEach(i -> {
+                Subject s = new Subject.Builder().session(i).buildSubject();
+                s.logout();
+                sessionDAO.delete(i);
+            });
+            throw new UnifiedException(ErrorCodeEnum.MULTI_USER_EXISTERROR);
+        }
+        if (sessionList.size() == 0)
+            throw new UnifiedException(ErrorCodeEnum.ALREADY_LOGOUT_ERROR);
+        if (sessionList.size() == 1
+                && !sessionList.get(0).getId().toString().equals(session.getId().toString()))
+            throw new UnifiedException(ErrorCodeEnum.JSESSIONID_NOT_MATCH_ERROR);
     }
 
 }

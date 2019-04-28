@@ -74,6 +74,7 @@ public class UnifiedExceptionResolver extends SimpleMappingExceptionResolver {
             response.setHeader("Access-Control-Allow-Origin", "*");
             response.setHeader("Content-Type", "application/json;charset=UTF-8");
             response.setHeader("Access-Control-Allow-Methods", "*");
+            response.setHeader("ams-JSESSIONID",response.getHeader("ams-JSESSIONID"));
             out = response.getWriter();
             out.write(result);
         } catch (UnsupportedEncodingException e) {
