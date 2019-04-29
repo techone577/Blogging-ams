@@ -2,6 +2,7 @@ package com.blogging.ams.web.api;
 
 import com.blogging.ams.business.AuthBusiness;
 import com.blogging.ams.model.dto.AuthReqDTO;
+import com.blogging.ams.model.dto.SessionDTO;
 import com.blogging.ams.model.entity.Response;
 import com.blogging.ams.model.enums.ErrorCodeEnum;
 import com.blogging.ams.support.annotation.Json;
@@ -61,5 +62,14 @@ public class AuthController {
     @RequestMapping(value = "/unauth", method = RequestMethod.POST)
     public Response unauth() {
         throw new UnifiedException(ErrorCodeEnum.NEED_RELOGIN);
+    }
+
+    @RequestMapping(value = "/stateJudge", method = RequestMethod.POST)
+    @ServiceInfo(name = "Blogging.AMS.AuthController.stateJudge", description = "状态、权限认证")
+    public Response stateJudge(@Json SessionDTO dto) {
+        LOG.info("权限认证入参:{}", JsonUtil.toString(dto));
+        Response response = authBusiness.authCertify(dto);
+        LOG.info("权限认证出参:{}", JsonUtil.toString(response));
+        return response;
     }
 }

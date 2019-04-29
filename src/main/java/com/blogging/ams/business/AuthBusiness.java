@@ -1,8 +1,10 @@
 package com.blogging.ams.business;
 
 import com.blogging.ams.model.dto.AuthReqDTO;
+import com.blogging.ams.model.dto.SessionDTO;
 import com.blogging.ams.model.entity.Response;
 import com.blogging.ams.model.entity.UserInfoEntity;
+import com.blogging.ams.model.enums.AuthEnum;
 import com.blogging.ams.model.enums.ErrorCodeEnum;
 import com.blogging.ams.service.UserService;
 import com.blogging.ams.support.exception.UnifiedException;
@@ -91,11 +93,15 @@ public class AuthBusiness {
                     //直接赋予登录状态 前端路由控制跳转 未登录不需删除当前创建的session
                     throw new UnifiedException(ErrorCodeEnum.ALREADY_LOGIN_ERROR);
                 }
+            });
+            //注意验证顺序 先验证同一浏览器
+            sessions.stream().forEach(i -> {
+                Subject s = new Subject.Builder().session(i).buildSubject();
                 //不是同一个session 同一个用户 踢出另一个
                 if (name.equals(s.getPrincipal()) && s.isAuthenticated() && !i.getId().toString().equals(sessionId)) {
                     //使当前session保持登录状态
                     s.logout();
-                    sessionDAO.delete(session);
+                    sessionDAO.delete(i);
                 }
             });
         }
@@ -166,7 +172,7 @@ public class AuthBusiness {
         Collection<Session> sessions = sessionDAO.getActiveSessions();
         List<Session> sessionList = sessions.stream().filter(i -> {
             Subject s = new Subject.Builder().session(i).buildSubject();
-            if( null == s){
+            if (null == s) {
                 sessionDAO.delete(i);
                 return false;
             }
@@ -192,6 +198,34 @@ public class AuthBusiness {
         if (sessionList.size() == 1
                 && !sessionList.get(0).getId().toString().equals(session.getId().toString()))
             throw new UnifiedException(ErrorCodeEnum.JSESSIONID_NOT_MATCH_ERROR);
+    }
+
+    public Response authCertify(SessionDTO dto) {
+        /**
+         * 登录验证
+         */
+        Subject user = SecurityUtils.getSubject();
+        Session session = user.getSession();
+        //useless
+        if (StringUtils.isBlank(dto.getSessionId()) || !session.getId().toString().equals(dto.getSessionId()))
+            throw new UnifiedException(ErrorCodeEnum.JSESSIONID_NOT_MATCH_ERROR);
+        if (!user.isAuthenticated())
+            throw new UnifiedException(ErrorCodeEnum.NEED_RELOGIN);
+        /**
+         * 权限验证
+         */
+        String permission = "";
+        if (StringUtils.isNotBlank(dto.getAuthority())) {
+            permission = dto.getAuthority();
+        } else {
+            permission = AuthEnum.GUEST.getValue();
+        }
+        if (user.isPermitted(AuthEnum.ROOT.getValue()))
+            return ResponseBuilder.build(true, "验证成功");
+        if (!user.isPermitted(permission)) {
+            throw new UnifiedException(ErrorCodeEnum.PERMISSION_DENIED_ERROR);
+        }
+        return ResponseBuilder.build(true, "验证成功");
     }
 
 }

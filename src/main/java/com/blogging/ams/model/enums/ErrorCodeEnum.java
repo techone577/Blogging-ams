@@ -33,7 +33,8 @@ public enum ErrorCodeEnum {
     ALREADY_LOGOUT_ERROR(20005, "您已经退出登录"),
     ALREADY_LOGIN_ERROR(20006, "已有用户登录"),
     MULTI_USER_EXISTERROR(20007, "多个相同用户同时在线"),
-    JSESSIONID_NOT_MATCH_ERROR(20008, "JSESSIONID不匹配");
+    JSESSIONID_NOT_MATCH_ERROR(20008, "JSESSIONID不匹配"),
+    PERMISSION_DENIED_ERROR(20009, "权限禁止");
 
 
     private int code;
