@@ -1,7 +1,9 @@
 package com.blogging.ams.business;
 
 import com.blogging.ams.model.dto.AuthReqDTO;
+import com.blogging.ams.model.dto.RegisterReqDTO;
 import com.blogging.ams.model.dto.SessionDTO;
+import com.blogging.ams.model.dto.UserInfoModifyDTO;
 import com.blogging.ams.model.entity.Response;
 import com.blogging.ams.model.entity.UserInfoEntity;
 import com.blogging.ams.model.enums.AuthEnum;
@@ -73,6 +75,8 @@ public class AuthBusiness {
         } catch (UnifiedException e) {
             LOG.info("ue:{}", e);
         }
+        UserInfoEntity entity = userService.queryByName(reqDTO.getName());
+        userService.updateActiveTimeByMemberId(entity.getMemberId(), new Date());
         return ResponseBuilder.build(true, "登录成功");
 
     }
@@ -122,7 +126,7 @@ public class AuthBusiness {
      * @param reqDTO
      * @return
      */
-    public Response register(AuthReqDTO reqDTO) {
+    public Response register(RegisterReqDTO reqDTO) {
         if (null == reqDTO || StringUtils.isBlank(reqDTO.getName())
                 || StringUtils.isBlank(reqDTO.getPassword()))
             throw new UnifiedException(ErrorCodeEnum.PARAM_ILLEGAL_ERROR);
@@ -133,8 +137,10 @@ public class AuthBusiness {
             {
                 setMemberId(IdGenerator.generateMemberId());
                 setNickName(reqDTO.getName());
+                setPermission(StringUtils.isBlank(reqDTO.getPermission()) ? AuthEnum.GUEST.getValue() : reqDTO.getPermission());
                 setDelFlag(0);
                 setAddTime(new Date());
+                setActiveTime(new Date());
                 setSalt(IdGenerator.geerateSalt());
             }
         };
@@ -200,6 +206,12 @@ public class AuthBusiness {
             throw new UnifiedException(ErrorCodeEnum.JSESSIONID_NOT_MATCH_ERROR);
     }
 
+    /**
+     * 验证
+     *
+     * @param dto
+     * @return
+     */
     public Response authCertify(SessionDTO dto) {
         /**
          * 登录验证
@@ -228,4 +240,62 @@ public class AuthBusiness {
         return ResponseBuilder.build(true, "验证成功");
     }
 
+
+    /**
+     * 用户删除
+     *
+     * @param reqDTO
+     * @return
+     */
+    public Response deleteUser(AuthReqDTO reqDTO) {
+        if (null == reqDTO || StringUtils.isBlank(reqDTO.getName()))
+            throw new UnifiedException(ErrorCodeEnum.PARAM_ILLEGAL_ERROR);
+        Subject user = SecurityUtils.getSubject();
+        if (!user.isAuthenticated())
+            throw new UnifiedException(ErrorCodeEnum.NEED_RELOGIN);
+        if(user.getPrincipal().equals(reqDTO.getName()))
+            throw new UnifiedException(ErrorCodeEnum.PERMISSION_DENIED_ERROR,"不能注销自己");
+        UserInfoEntity userInfoEntity = userService.queryByName(reqDTO.getName());
+        if (null == userInfoEntity)
+            throw new UnifiedException(ErrorCodeEnum.USER_NOT_EXIST_ERROR);
+        if (AuthEnum.ROOT.getValue().equals(userInfoEntity.getPermission()))
+            throw new UnifiedException(ErrorCodeEnum.PERMISSION_DENIED_ERROR, "root用户无法删除");
+        userService.delUser(reqDTO.getName());
+        return ResponseBuilder.build(true, "删除成功");
+    }
+
+    /**
+     * 用户信息修改
+     *
+     * @param dto
+     * @return
+     */
+    public Response modifyUserInfo(UserInfoModifyDTO dto) {
+        if (null == dto || StringUtils.isBlank(dto.getMemberId()))
+            throw new UnifiedException(ErrorCodeEnum.PARAM_ILLEGAL_ERROR);
+        UserInfoEntity userInfoEntity = userService.queryByMemberId(dto.getMemberId());
+        if (null == userInfoEntity)
+            throw new UnifiedException(ErrorCodeEnum.USER_NOT_EXIST_ERROR);
+        String password = "";
+        if (StringUtils.isNotBlank(dto.getPassword())) {
+            password = new SimpleHash("MD5", dto.getPassword(), userInfoEntity.getSalt(), 1024).toHex();
+        }
+        UserInfoEntity entity = new UserInfoEntity();
+        entity.setPermission(dto.getPermission());
+        entity.setNickName(dto.getName());
+        entity.setPassword(password);
+        entity.setMemberId(dto.getMemberId());
+        updateFrontCheck(userInfoEntity, entity);
+        userService.updateByMemberId(entity);
+        return ResponseBuilder.build(true, "修改成功");
+    }
+
+    private void updateFrontCheck(UserInfoEntity old, UserInfoEntity fresh) {
+        boolean permissionChange = StringUtils.isNotBlank(fresh.getPermission()) && fresh.getPermission().equals(old.getPermission());
+        boolean passwordChange = StringUtils.isNotBlank(fresh.getPassword()) && fresh.getPassword().equals(old.getPassword());
+        boolean nameChange = StringUtils.isNotBlank(fresh.getNickName()) && fresh.getNickName().equals(old.getNickName());
+
+        if (permissionChange && passwordChange && nameChange)
+            throw new UnifiedException(ErrorCodeEnum.USER_INFO_NOT_CHANGE_ERROR);
+    }
 }

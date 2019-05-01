@@ -15,6 +15,8 @@ public class UserInfoEntity {
 
     private String permission;
 
+    private Date activeTime;
+
     private Date addTime;
 
     private Date updateTime;
@@ -67,6 +69,14 @@ public class UserInfoEntity {
 
     public void setPermission(String permission) {
         this.permission = permission;
+    }
+
+    public Date getActiveTime() {
+        return activeTime;
+    }
+
+    public void setActiveTime(Date activeTime) {
+        this.activeTime = activeTime;
     }
 
     public Date getAddTime() {

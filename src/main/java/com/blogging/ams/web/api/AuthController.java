@@ -2,8 +2,11 @@ package com.blogging.ams.web.api;
 
 import com.blogging.ams.business.AuthBusiness;
 import com.blogging.ams.model.dto.AuthReqDTO;
+import com.blogging.ams.model.dto.RegisterReqDTO;
 import com.blogging.ams.model.dto.SessionDTO;
+import com.blogging.ams.model.dto.UserInfoModifyDTO;
 import com.blogging.ams.model.entity.Response;
+import com.blogging.ams.model.entity.UserInfoEntity;
 import com.blogging.ams.model.enums.ErrorCodeEnum;
 import com.blogging.ams.support.annotation.Json;
 import com.blogging.ams.support.annotation.ServiceInfo;
@@ -43,7 +46,7 @@ public class AuthController {
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     @ServiceInfo(name = "Blogging.AMS.AuthController.register", description = "注册")
     @RequiresRoles("root")
-    public Response register(@Json AuthReqDTO dto) {
+    public Response register(@Json RegisterReqDTO dto) {
         LOG.info("注册用户入参:{}", JsonUtil.toString(dto));
         Response response = authBusiness.register(dto);
         LOG.info("注册用户出参:{}", JsonUtil.toString(response));
@@ -70,6 +73,24 @@ public class AuthController {
         LOG.info("权限认证入参:{}", JsonUtil.toString(dto));
         Response response = authBusiness.authCertify(dto);
         LOG.info("权限认证出参:{}", JsonUtil.toString(response));
+        return response;
+    }
+
+    @RequestMapping(value = "/deleteUser", method = RequestMethod.POST)
+    @ServiceInfo(name = "Blogging.AMS.AuthController.delUser", description = "删除用户")
+    public Response delUser(@Json AuthReqDTO dto) {
+        LOG.info("删除用户入参:{}", JsonUtil.toString(dto));
+        Response response = authBusiness.deleteUser(dto);
+        LOG.info("删除用户出参:{}", JsonUtil.toString(response));
+        return response;
+    }
+
+    @RequestMapping(value = "/modify", method = RequestMethod.POST)
+    @ServiceInfo(name = "Blogging.AMS.AuthController.modify", description = "修改信息")
+    public Response modify(@Json UserInfoModifyDTO dto) {
+        LOG.info("用户信息修改入参:{}", JsonUtil.toString(dto));
+        Response response = authBusiness.modifyUserInfo(dto);
+        LOG.info("用户信息修改出参:{}", JsonUtil.toString(response));
         return response;
     }
 }

@@ -1,101 +1,152 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.blogging.ams.persistence.UserInfoEntityMapper" >
-  <resultMap id="BaseResultMap" type="com.blogging.ams.model.entity.UserInfoEntity" >
-    <result column="id" property="id" />
-    <result column="member_id" property="memberId" />
-    <result column="nick_name" property="nickName" />
-    <result column="password" property="password" />
-    <result column="salt" property="salt" />
-    <result column="permission" property="permission"/>
-    <result column="add_time" property="addTime" />
-    <result column="update_time" property="updateTime" />
-    <result column="del_flag" property="delFlag" />
-  </resultMap>
-  <sql id="Base_Column_List">
-    id, member_id, nick_name, password, salt, permission, add_time, update_time, del_flag
+<mapper namespace="com.blogging.ams.persistence.UserInfoEntityMapper">
+    <resultMap id="BaseResultMap" type="com.blogging.ams.model.entity.UserInfoEntity">
+        <result column="id" property="id"/>
+        <result column="member_id" property="memberId"/>
+        <result column="nick_name" property="nickName"/>
+        <result column="password" property="password"/>
+        <result column="salt" property="salt"/>
+        <result column="permission" property="permission"/>
+        <result column="active_time" property="activeTime"/>
+        <result column="add_time" property="addTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="del_flag" property="delFlag"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, member_id, nick_name, password, salt, permission, active_time, add_time, update_time, del_flag
   </sql>
-  <insert id="insert" parameterType="com.blogging.ams.model.entity.UserInfoEntity" >
+
+    <insert id="insert" parameterType="com.blogging.ams.model.entity.UserInfoEntity">
     insert into user_info (id, member_id, nick_name, 
-      password, salt, permission, add_time,
+      password, salt, permission, active_time, add_time,
       update_time, del_flag)
     values (#{id}, #{memberId}, #{nickName}, 
-      #{password}, #{salt}, #{permission}, #{addTime},
+      #{password}, #{salt}, #{permission}, #{activeTime}, #{addTime},
       #{updateTime}, #{delFlag})
-  </insert>
-  <insert id="insertSelective" parameterType="com.blogging.ams.model.entity.UserInfoEntity" >
-    insert into user_info
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="memberId != null" >
-        member_id,
-      </if>
-      <if test="nickName != null" >
-        nick_name,
-      </if>
-      <if test="password != null" >
-        password,
-      </if>
-      <if test="salt != null" >
-        salt,
-      </if>
-      <if test="permission != null">
-        permission,
-      </if>
-      <if test="addTime != null" >
-        add_time,
-      </if>
-      <if test="updateTime != null" >
-        update_time,
-      </if>
-      <if test="delFlag != null" >
-        del_flag,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id},
-      </if>
-      <if test="memberId != null" >
-        #{memberId},
-      </if>
-      <if test="nickName != null" >
-        #{nickName},
-      </if>
-      <if test="password != null" >
-        #{password},
-      </if>
-      <if test="salt != null" >
-        #{salt},
-      </if>
-      <if test="permission != null" >
-        #{permission},
-      </if>
-      <if test="addTime != null" >
-        #{addTime},
-      </if>
-      <if test="updateTime != null" >
-        #{updateTime},
-      </if>
-      <if test="delFlag != null" >
-        #{delFlag},
-      </if>
-    </trim>
-  </insert>
-  <select id="selectByMemberId" resultMap="BaseResultMap" parameterType="java.lang.String">
-    SELECT
-    <include refid="Base_Column_List"/>
-    FROM user_info
-    WHERE del_flag = 0
-    AND member_id = #{memberId}
-  </select>
-  <select id="selectByName" resultMap="BaseResultMap" parameterType="java.lang.String">
-    SELECT
-    <include refid="Base_Column_List"/>
-    FROM user_info
-    WHERE del_flag = 0
-    AND nick_name = #{name}
-  </select>
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.blogging.ams.model.entity.UserInfoEntity">
+        insert into user_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="memberId != null">
+                member_id,
+            </if>
+            <if test="nickName != null">
+                nick_name,
+            </if>
+            <if test="password != null">
+                password,
+            </if>
+            <if test="salt != null">
+                salt,
+            </if>
+            <if test="permission != null">
+                permission,
+            </if>
+            <if test="activeTime != null">
+                active_time,
+            </if>
+            <if test="addTime != null">
+                add_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id},
+            </if>
+            <if test="memberId != null">
+                #{memberId},
+            </if>
+            <if test="nickName != null">
+                #{nickName},
+            </if>
+            <if test="password != null">
+                #{password},
+            </if>
+            <if test="salt != null">
+                #{salt},
+            </if>
+            <if test="permission != null">
+                #{permission},
+            </if>
+            <if test="activeTime != null">
+                #{activeTime},
+            </if>
+            <if test="addTime != null">
+                #{addTime},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectByMemberId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_info
+        WHERE del_flag = 0
+        AND member_id = #{memberId}
+    </select>
+
+    <select id="selectByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_info
+        WHERE del_flag = 0
+        AND nick_name = #{name}
+    </select>
+
+    <select id="selectUsers" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_info
+    </select>
+
+    <delete id="delByName">
+        DELETE
+        FROM user_info
+        WHERE
+        nick_name = #{name}
+    </delete>
+
+    <update id="updateByMemberId" parameterType="com.blogging.ams.model.entity.UserInfoEntity">
+        UPDATE
+        user_info
+        <set>
+            <if test="nickName != null and nickName != ''">
+                nick_name = #{nickName},
+            </if>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="permission != null and permission != ''">
+                permission = #{permission}
+            </if>
+        </set>
+        WHERE
+        member_id = #{memberId}
+    </update>
+
+    <update id="updateActiveTimeByMemberId">
+        UPDATE
+        user_info
+        SET
+        active_time = #{activeTime}
+        WHERE
+        member_id = #{memberId}
+    </update>
 </mapper>
