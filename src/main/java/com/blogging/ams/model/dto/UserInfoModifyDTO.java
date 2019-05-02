@@ -10,6 +10,8 @@ public class UserInfoModifyDTO {
 
     private String permission;
 
+    private String oldPassword;
+
     private String password;
 
     private String memberId;
@@ -28,6 +30,14 @@ public class UserInfoModifyDTO {
 
     public void setPermission(String permission) {
         this.permission = permission;
+    }
+
+    public String getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
     }
 
     public String getPassword() {

@@ -3,6 +3,7 @@ package com.blogging.ams.web.api;
 import com.blogging.ams.business.BMBusiness;
 import com.blogging.ams.model.dto.AuthReqDTO;
 import com.blogging.ams.model.entity.Response;
+import com.blogging.ams.support.annotation.Json;
 import com.blogging.ams.support.annotation.ServiceInfo;
 import com.blogging.ams.support.utils.JsonUtil;
 import org.slf4j.Logger;
@@ -38,9 +39,9 @@ public class BMController {
 
     @RequestMapping(value = "/queryUserByName", method = RequestMethod.POST)
     @ServiceInfo(name = "Blogging.AMS.BMController.queryUserByName",description = "查询单个用户")
-    public Response queryUsers(@RequestBody AuthReqDTO reqDTO) {
+    public Response queryUsers(@Json AuthReqDTO reqDTO) {
         LOG.info("（BM）查询单个用户入参:{}",JsonUtil.toString(reqDTO));
-        Response response = bmBusiness.queryUsers();
+        Response response = bmBusiness.queryUserByName(reqDTO);
         LOG.info("（BM）查询单个用户出参:{}", JsonUtil.toString(response));
         return response;
     }

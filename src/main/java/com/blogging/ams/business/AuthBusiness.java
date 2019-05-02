@@ -277,8 +277,13 @@ public class AuthBusiness {
         if (null == userInfoEntity)
             throw new UnifiedException(ErrorCodeEnum.USER_NOT_EXIST_ERROR);
         String password = "";
+        String oldPassword = "";
         if (StringUtils.isNotBlank(dto.getPassword())) {
             password = new SimpleHash("MD5", dto.getPassword(), userInfoEntity.getSalt(), 1024).toHex();
+            oldPassword =new SimpleHash("MD5", dto.getOldPassword(), userInfoEntity.getSalt(), 1024).toHex();
+            if(!oldPassword.equals(userInfoEntity.getPassword())){
+                throw new UnifiedException(ErrorCodeEnum.WRONG_PASSWORD_ERROR);
+            }
         }
         UserInfoEntity entity = new UserInfoEntity();
         entity.setPermission(dto.getPermission());
